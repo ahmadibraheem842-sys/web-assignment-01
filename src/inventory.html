@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Inventory Management - CRUD & Local Storage</title>
+    <title>Inventory Management - CRUD</title>
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
@@ -14,47 +14,49 @@
         <div class="container mx-auto flex justify-between items-center">
             <h1 class="text-xl font-bold">Nova Gem Inventory</h1>
             <div class="space-x-4">
-                <a href="index.html" class="hover:underline">Home</a>
-                <a href="inventory.html" class="underline font-semibold">Inventory (CRUD)</a>
-                <a href="api-product.html" class="hover:underline">API Products</a>
+                <a href="index.html" class="hover:underline font-semibold">Home</a>
+                <a href="inventory.html" class="hover:underline font-semibold">Inventory (CRUD)</a>
+                <a href="api-product.html" class="hover:underline font-semibold">Api Products</a>
             </div>
         </div>
     </nav>
 
     <!-- Main Container -->
     <div class="container mx-auto p-6 max-w-4xl">
-        <h2 class="text-2xl font-bold mb-4 text-gray-800">Product Inventory Management</h2>
+        <h2 class="text-2xl font-bold mb-6 text-gray-800 text-center">Product Inventory Management</h2>
 
-        <!-- Form Section (Create & Update) -->
+        <!-- Add/Edit Product Form Card -->
         <div class="bg-white p-6 rounded-lg shadow-md mb-6">
-            <h3 id="form-title" class="text-lg font-semibold mb-3 text-gray-700">Add New Product</h3>
-            <form id="item-form" class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <input type="hidden" id="item-index">
-                <input type="text" id="product-name" placeholder="Product Name" required class="border p-2 rounded focus:outline-none focus:ring-2 focus:ring-blue-500">
-                <input type="text" id="product-category" placeholder="Category" required class="border p-2 rounded focus:outline-none focus:ring-2 focus:ring-blue-500">
-                <input type="number" id="product-price" placeholder="Price" required class="border p-2 rounded focus:outline-none focus:ring-2 focus:ring-blue-500">
-                <button type="submit" id="submit-btn" class="md:col-span-3 bg-blue-600 text-white p-2 rounded hover:bg-blue-700 transition">Add Product</button>
+            <h3 id="form-title" class="text-lg font-semibold mb-4 text-gray-700">Add New Product</h3>
+            <form id="product-form" class="space-y-4">
+                <input type="hidden" id="product-id">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <input type="text" id="name" placeholder="Product Name" required class="border p-2 rounded focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <input type="text" id="category" placeholder="Category" required class="border p-2 rounded focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <input type="number" id="price" placeholder="Price" required class="border p-2 rounded focus:outline-none focus:ring-2 focus:ring-blue-500">
+                </div>
+                <button type="submit" id="submit-btn" class="w-full bg-blue-600 text-white p-2 rounded font-semibold hover:bg-blue-700 transition">Add Product</button>
             </form>
         </div>
 
-        <!-- Search & Filter Section -->
+        <!-- Search Bar -->
         <div class="mb-6">
-            <input type="text" id="search-input" placeholder="Search by product name or category..." class="w-full border p-3 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+            <input type="text" id="search" placeholder="Search by product name or category..." class="w-full p-3 border rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
         </div>
 
-        <!-- Display Records Table (Read) -->
+        <!-- Product Table -->
         <div class="bg-white rounded-lg shadow-md overflow-hidden">
             <table class="w-full border-collapse">
                 <thead>
-                    <tr class="bg-gray-200 text-left text-gray-700">
-                        <th class="p-3">Name</th>
-                        <th class="p-3">Category</th>
-                        <th class="p-3">Price</th>
-                        <th class="p-3 text-center">Actions</th>
+                    <tr class="bg-gray-200 text-gray-700 text-left">
+                        <th class="p-3 border-b">Name</th>
+                        <th class="p-3 border-b">Category</th>
+                        <th class="p-3 border-b">Price</th>
+                        <th class="p-3 border-b text-center">Actions</th>
                     </tr>
                 </thead>
                 <tbody id="product-table-body">
-                    <!-- Dynamic Data will load here -->
+                    <!-- Dynamic Rows Will Be Injected Here -->
                 </tbody>
             </table>
         </div>
@@ -62,28 +64,39 @@
 
     <!-- JavaScript Logic for CRUD & Local Storage -->
     <script>
-        const form = document.getElementById('item-form');
-        const nameInput = document.getElementById('product-name');
-        const categoryInput = document.getElementById('product-category');
-        const priceInput = document.getElementById('product-price');
-        const indexInput = document.getElementById('item-index');
+        let products = JSON.parse(localStorage.getItem('products')) || [
+            { id: 1, name: 'brinii', category: 'knnlml', price: 3500 },
+            { id: 2, name: 'knklklm', category: 'vgcyy', price: 515152 },
+            { id: 3, name: 'knjikno', category: 'jbjk', price: 15131 }
+        ];
+
+        const productForm = document.getElementById('product-form');
+        const productIdInput = document.getElementById('product-id');
+        const nameInput = document.getElementById('name');
+        const categoryInput = document.getElementById('category');
+        const priceInput = document.getElementById('price');
         const submitBtn = document.getElementById('submit-btn');
+        const formTitle = document.getElementById('form-title');
         const tableBody = document.getElementById('product-table-body');
-        const searchInput = document.getElementById('search-input');
+        const searchInput = document.getElementById('search');
 
-        // Local Storage se data nikalna ya empty array dena (Array of Objects)[span_3](start_span)[span_3](end_span)[span_4](start_span)[span_4](end_span)
-        let products = JSON.parse(localStorage.getItem('products')) || [];
+        function saveToLocalStorage() {
+            localStorage.setItem('products', JSON.stringify(products));
+        }
 
-        // Function to Display Records (Read & Map)[span_5](start_span)[span_5](end_span)[span_6](start_span)[span_6](end_span)
-        function displayProducts(productsToDisplay = products) {
+        function displayProducts(filterText = '') {
             tableBody.innerHTML = '';
-            
-            if (productsToDisplay.length === 0) {
-                tableBody.innerHTML = `<tr><td colspan="4" class="p-4 text-center text-gray-500">No records found.</td></tr>`;
+            const filtered = products.filter(p => 
+                p.name.toLowerCase().includes(filterText.toLowerCase()) || 
+                p.category.toLowerCase().includes(filterText.toLowerCase())
+            );
+
+            if (filtered.length === 0) {
+                tableBody.innerHTML = `<tr><td colspan="4" class="p-4 text-center text-gray-500">No products found.</td></tr>`;
                 return;
             }
 
-            productsToDisplay.forEach((product, originalIndex) => {
+            filtered.forEach((product, index) => {
                 const row = document.createElement('tr');
                 row.className = 'border-b hover:bg-gray-50';
                 row.innerHTML = `
@@ -91,69 +104,63 @@
                     <td class="p-3">${product.category}</td>
                     <td class="p-3">$${product.price}</td>
                     <td class="p-3 text-center space-x-2">
-                        <button onclick="editProduct(${originalIndex})" class="bg-yellow-500 text-white px-3 py-1 rounded text-sm hover:bg-yellow-600">Edit</button>
-                        <button onclick="deleteProduct(${originalIndex})" class="bg-red-500 text-white px-3 py-1 rounded text-sm hover:bg-red-600">Delete</button>
+                        <button onclick="editProduct(${product.id})" class="bg-yellow-500 text-white px-3 py-1 rounded text-sm hover:bg-yellow-600">Edit</button>
+                        <button onclick="deleteProduct(${product.id})" class="bg-red-600 text-white px-3 py-1 rounded text-sm hover:bg-red-700">Delete</button>
                     </td>
                 `;
                 tableBody.appendChild(row);
             });
         }
 
-        // Save to Local Storage function[span_7](start_span)[span_7](end_span)[span_8](start_span)[span_8](end_span)
-        function saveToLocalStorage() {
-            localStorage.setItem('products', JSON.stringify(products));
-        }
-
-        // Create or Update Record[span_9](start_span)[span_9](end_span)
-        form.addEventListener('submit', function(e) {
+        productForm.addEventListener('submit', function(e) {
             e.preventDefault();
-            const name = nameInput.value.trim();
-            const category = categoryInput.value.trim();
-            const price = priceInput.value.trim();
-            const index = indexInput.value;
+            const id = productIdInput.value;
+            const name = nameInput.value;
+            const category = categoryInput.value;
+            const price = priceInput.value;
 
-            if (index === "") {
-                // Create New Record
-                products.push({ name, category, price });
+            if (id) {
+                // Update
+                products = products.map(p => p.id == id ? { id: Number(id), name, category, price } : p);
+                productIdInput.value = '';
+                submitBtn.textContent = 'Add Product';
+                formTitle.textContent = 'Add New Product';
             } else {
-                // Update Existing Record
-                products[index] = { name, category, price };
-                indexInput.value = "";
-                submitBtn.textContent = "Add Product";
-                submitBtn.classList.replace('bg-green-600', 'bg-blue-600');
+                // Create
+                const newProduct = {
+                    id: Date.now(),
+                    name,
+                    category,
+                    price
+                };
+                products.push(newProduct);
             }
 
             saveToLocalStorage();
             displayProducts();
-            form.reset();
+            productForm.reset();
         });
 
-        // Edit Record (Using Find concept or Index)[span_10](start_span)[span_10](end_span)
-        window.editProduct = function(index) {
-            const product = products[index];
-            nameInput.value = product.name;
-            categoryInput.value = product.category;
-            priceInput.value = product.price;
-            indexInput.value = index;
-            submitBtn.textContent = "Update Product";
-            submitBtn.classList.replace('bg-blue-600', 'bg-green-600');
+        window.editProduct = function(id) {
+            const product = products.find(p => p.id === id);
+            if (product) {
+                productIdInput.value = product.id;
+                nameInput.value = product.name;
+                categoryInput.value = product.category;
+                priceInput.value = product.price;
+                submitBtn.textContent = 'Update Product';
+                formTitle.textContent = 'Edit Product';
+            }
         }
 
-        // Delete Record[span_11](start_span)[span_11](end_span)
-        window.deleteProduct = function(index) {
-            products.splice(index, 1);
+        window.deleteProduct = function(id) {
+            products = products.filter(p => p.id !== id);
             saveToLocalStorage();
             displayProducts();
         }
 
-        // Search and Filter (Using filter() method)[span_12](start_span)[span_12](end_span)[span_13](start_span)[span_13](end_span)
         searchInput.addEventListener('input', function(e) {
-            const query = e.target.value.toLowerCase();
-            const filteredProducts = products.filter(product => 
-                product.name.toLowerCase().includes(query) || 
-                product.category.toLowerCase().includes(query)
-            );
-            displayProducts(filteredProducts);
+            displayProducts(e.target.value);
         });
 
         // Initial Load
