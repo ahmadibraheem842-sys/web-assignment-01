@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API Products - Axios Integration</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Axios CDN Link (Required for Assignment) -->
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+</head>
+<body class="bg-gray-100 font-sans">
+
+    <!-- Navbar -->
+    <nav class="bg-blue-600 text-white p-4 shadow-md">
+        <div class="container mx-auto flex justify-between items-center">
+            <h1 class="text-xl font-bold">Nova Gem API Products</h1>
+            <div class="space-x-4">
+                <a href="index.html" class="hover:underline">Home</a>
+                <a href="inventory.html" class="hover:underline">Inventory (CRUD)</a>
+                <a href="api-product.html" class="underline font-semibold">API Products</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Container -->
+    <div class="container mx-auto p-6">
+        <h2 class="text-2xl font-bold mb-6 text-gray-800 text-center">Fetched Products from Public API (via Axios)</h2>
+
+        <!-- Loading State -->
+        <div id="loading" class="text-center text-lg text-blue-600 font-semibold my-10">
+            Loading products from API...
+        </div>
+
+        <!-- Error State -->
+        <div id="error-message" class="hidden text-center text-lg text-red-600 font-semibold my-10">
+            Failed to load products. Please check your internet connection or API endpoint.
+        </div>
+
+        <!-- Products Grid Container -->
+        <div id="product-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+            <!-- Dynamic Cards will load here -->
+        </div>
+    </div>
+
+    <!-- JavaScript Logic for Axios GET Request -->
+    <script>
+        const productGrid = document.getElementById('product-grid');
+        const loadingDiv = document.getElementById('loading');
+        const errorDiv = document.getElementById('error-message');
+
+        // Function to fetch data using Axios GET request[span_2](start_span)[span_2](end_span)
+        async function fetchAPIProducts() {
+            try {
+                // Using free public Fake Store API[span_3](start_span)[span_3](end_span)
+                const response = await axios.get('https://fakestoreapi.com/products');
+                
+                // Hide loading spinner once data is fetched
+                loadingDiv.style.display = 'none';
+
+                const products = response.data;
+
+                // Display products dynamically using map/forEach[span_4](start_span)[span_4](end_span)[span_5](start_span)[span_5](end_span)
+                products.forEach(product => {
+                    const card = document.createElement('div');
+                    card.className = 'bg-white rounded-lg shadow-md p-4 flex flex-col justify-between hover:shadow-lg transition';
+                    
+                    card.innerHTML = `
+                        <div>
+                            <img src="${product.image}" alt="${product.title}" class="h-48 w-full object-contain mb-4">
+                            <h3 class="font-bold text-gray-800 text-sm mb-2 line-clamp-1">${product.title}</h3>
+                            <p class="text-gray-600 text-xs mb-2 line-clamp-2">${product.description}</p>
+                        </div>
+                        <div>
+                            <div class="text-blue-600 font-bold text-lg mb-2">$${product.price}</div>
+                            <span class="inline-block bg-gray-200 text-gray-700 text-xs px-2 py-1 rounded uppercase font-semibold">${product.category}</span>
+                        </div>
+                    `;
+                    productGrid.appendChild(card);
+                });
+
+            } catch (error) {
+                // Handle error states properly[span_6](start_span)[span_6](end_span)
+                loadingDiv.style.display = 'none';
+                errorDiv.classList.remove('hidden');
+                console.error('Error fetching API data:', error);
+            }
+        }
+
+        // Call the function on page load
+        fetchAPIProducts();
+    </script>
+</body>
+</html>
