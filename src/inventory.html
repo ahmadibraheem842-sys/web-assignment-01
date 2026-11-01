@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inventory Management - CRUD & Local Storage</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 font-sans">
+
+    <!-- Navbar -->
+    <nav class="bg-blue-600 text-white p-4 shadow-md">
+        <div class="container mx-auto flex justify-between items-center">
+            <h1 class="text-xl font-bold">Nova Gem Inventory</h1>
+            <div class="space-x-4">
+                <a href="index.html" class="hover:underline">Home</a>
+                <a href="inventory.html" class="underline font-semibold">Inventory (CRUD)</a>
+                <a href="api-product.html" class="hover:underline">API Products</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Container -->
+    <div class="container mx-auto p-6 max-w-4xl">
+        <h2 class="text-2xl font-bold mb-4 text-gray-800">Product Inventory Management</h2>
+
+        <!-- Form Section (Create & Update) -->
+        <div class="bg-white p-6 rounded-lg shadow-md mb-6">
+            <h3 id="form-title" class="text-lg font-semibold mb-3 text-gray-700">Add New Product</h3>
+            <form id="item-form" class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <input type="hidden" id="item-index">
+                <input type="text" id="product-name" placeholder="Product Name" required class="border p-2 rounded focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <input type="text" id="product-category" placeholder="Category" required class="border p-2 rounded focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <input type="number" id="product-price" placeholder="Price" required class="border p-2 rounded focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <button type="submit" id="submit-btn" class="md:col-span-3 bg-blue-600 text-white p-2 rounded hover:bg-blue-700 transition">Add Product</button>
+            </form>
+        </div>
+
+        <!-- Search & Filter Section -->
+        <div class="mb-6">
+            <input type="text" id="search-input" placeholder="Search by product name or category..." class="w-full border p-3 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+        </div>
+
+        <!-- Display Records Table (Read) -->
+        <div class="bg-white rounded-lg shadow-md overflow-hidden">
+            <table class="w-full border-collapse">
+                <thead>
+                    <tr class="bg-gray-200 text-left text-gray-700">
+                        <th class="p-3">Name</th>
+                        <th class="p-3">Category</th>
+                        <th class="p-3">Price</th>
+                        <th class="p-3 text-center">Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="product-table-body">
+                    <!-- Dynamic Data will load here -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- JavaScript Logic for CRUD & Local Storage -->
+    <script>
+        const form = document.getElementById('item-form');
+        const nameInput = document.getElementById('product-name');
+        const categoryInput = document.getElementById('product-category');
+        const priceInput = document.getElementById('product-price');
+        const indexInput = document.getElementById('item-index');
+        const submitBtn = document.getElementById('submit-btn');
+        const tableBody = document.getElementById('product-table-body');
+        const searchInput = document.getElementById('search-input');
+
+        // Local Storage se data nikalna ya empty array dena (Array of Objects)[span_3](start_span)[span_3](end_span)[span_4](start_span)[span_4](end_span)
+        let products = JSON.parse(localStorage.getItem('products')) || [];
+
+        // Function to Display Records (Read & Map)[span_5](start_span)[span_5](end_span)[span_6](start_span)[span_6](end_span)
+        function displayProducts(productsToDisplay = products) {
+            tableBody.innerHTML = '';
+            
+            if (productsToDisplay.length === 0) {
+                tableBody.innerHTML = `<tr><td colspan="4" class="p-4 text-center text-gray-500">No records found.</td></tr>`;
+                return;
+            }
+
+            productsToDisplay.forEach((product, originalIndex) => {
+                const row = document.createElement('tr');
+                row.className = 'border-b hover:bg-gray-50';
+                row.innerHTML = `
+                    <td class="p-3">${product.name}</td>
+                    <td class="p-3">${product.category}</td>
+                    <td class="p-3">$${product.price}</td>
+                    <td class="p-3 text-center space-x-2">
+                        <button onclick="editProduct(${originalIndex})" class="bg-yellow-500 text-white px-3 py-1 rounded text-sm hover:bg-yellow-600">Edit</button>
+                        <button onclick="deleteProduct(${originalIndex})" class="bg-red-500 text-white px-3 py-1 rounded text-sm hover:bg-red-600">Delete</button>
+                    </td>
+                `;
+                tableBody.appendChild(row);
+            });
+        }
+
+        // Save to Local Storage function[span_7](start_span)[span_7](end_span)[span_8](start_span)[span_8](end_span)
+        function saveToLocalStorage() {
+            localStorage.setItem('products', JSON.stringify(products));
+        }
+
+        // Create or Update Record[span_9](start_span)[span_9](end_span)
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const name = nameInput.value.trim();
+            const category = categoryInput.value.trim();
+            const price = priceInput.value.trim();
+            const index = indexInput.value;
+
+            if (index === "") {
+                // Create New Record
+                products.push({ name, category, price });
+            } else {
+                // Update Existing Record
+                products[index] = { name, category, price };
+                indexInput.value = "";
+                submitBtn.textContent = "Add Product";
+                submitBtn.classList.replace('bg-green-600', 'bg-blue-600');
+            }
+
+            saveToLocalStorage();
+            displayProducts();
+            form.reset();
+        });
+
+        // Edit Record (Using Find concept or Index)[span_10](start_span)[span_10](end_span)
+        window.editProduct = function(index) {
+            const product = products[index];
+            nameInput.value = product.name;
+            categoryInput.value = product.category;
+            priceInput.value = product.price;
+            indexInput.value = index;
+            submitBtn.textContent = "Update Product";
+            submitBtn.classList.replace('bg-blue-600', 'bg-green-600');
+        }
+
+        // Delete Record[span_11](start_span)[span_11](end_span)
+        window.deleteProduct = function(index) {
+            products.splice(index, 1);
+            saveToLocalStorage();
+            displayProducts();
+        }
+
+        // Search and Filter (Using filter() method)[span_12](start_span)[span_12](end_span)[span_13](start_span)[span_13](end_span)
+        searchInput.addEventListener('input', function(e) {
+            const query = e.target.value.toLowerCase();
+            const filteredProducts = products.filter(product => 
+                product.name.toLowerCase().includes(query) || 
+                product.category.toLowerCase().includes(query)
+            );
+            displayProducts(filteredProducts);
+        });
+
+        // Initial Load
+        displayProducts();
+    </script>
+</body>
+</html>
