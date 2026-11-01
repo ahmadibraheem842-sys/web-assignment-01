@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inventory Management - CRUD</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 font-sans">
+
+    <!-- Navbar -->
+    <nav class="bg-blue-600 text-white p-4 shadow-md">
+        <div class="container mx-auto flex justify-between items-center">
+            <h1 class="text-xl font-bold">Nova Gem Inventory</h1>
+           <div class="space-x-4">
+  <a href="index.html">Home</a>
+<a href="inventory.html">Inventory (CRUD)</a>
+<a href="api-product.html">Api Products</a>
+</div>
+        </div>
+    </nav>
+
+    <!-- Main Container -->
+    <div class="container mx-auto p-6 max-w-4xl">
+        <h2 class="text-2xl font-bold mb-6 text-gray-800 text-center">Product Inventory Management</h2>
+
+        <!-- Add/Edit Product Form Card -->
+        <div class="bg-white p-6 rounded-lg shadow-md mb-6">
+            <h3 id="form-title" class="text-lg font-semibold mb-4 text-gray-700">Add New Product</h3>
+            <form id="product-form" class="space-y-4">
+                <input type="hidden" id="product-id">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <input type="text" id="name" placeholder="Product Name" required class="border p-2 rounded focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <input type="text" id="category" placeholder="Category" required class="border p-2 rounded focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <input type="number" id="price" placeholder="Price" required class="border p-2 rounded focus:outline-none focus:ring-2 focus:ring-blue-500">
+                </div>
+                <button type="submit" id="submit-btn" class="w-full bg-blue-600 text-white p-2 rounded font-semibold hover:bg-blue-700 transition">Add Product</button>
+            </form>
+        </div>
+
+        <!-- Search Bar -->
+        <div class="mb-6">
+            <input type="text" id="search" placeholder="Search by product name or category..." class="w-full p-3 border rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+        </div>
+
+        <!-- Product Table -->
+        <div class="bg-white rounded-lg shadow-md overflow-hidden">
+            <table class="w-full border-collapse">
+                <thead>
+                    <tr class="bg-gray-200 text-gray-700 text-left">
+                        <th class="p-3 border-b">Name</th>
+                        <th class="p-3 border-b">Category</th>
+                        <th class="p-3 border-b">Price</th>
+                        <th class="p-3 border-b text-center">Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="product-table-body">
+                    <!-- Dynamic Rows Will Be Injected Here -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- JavaScript Logic for CRUD & Local Storage -->
+    <script>
+        let products = JSON.parse(localStorage.getItem('products')) || [
+            { id: 1, name: 'brinii', category: 'knnlml', price: 3500 },
+            { id: 2, name: 'knklklm', category: 'vgcyy', price: 515152 },
+            { id: 3, name: 'knjikno', category: 'jbjk', price: 15131 }
+        ];
+
+        const productForm = document.getElementById('product-form');
+        const productIdInput = document.getElementById('product-id');
+        const nameInput = document.getElementById('name');
+        const categoryInput = document.getElementById('category');
+        const priceInput = document.getElementById('price');
+        const submitBtn = document.getElementById('submit-btn');
+        const formTitle = document.getElementById('form-title');
+        const tableBody = document.getElementById('product-table-body');
+        const searchInput = document.getElementById('search');
+
+        function saveToLocalStorage() {
+            localStorage.setItem('products', JSON.stringify(products));
+        }
+
+        function displayProducts(filterText = '') {
+            tableBody.innerHTML = '';
+            const filtered = products.filter(p => 
+                p.name.toLowerCase().includes(filterText.toLowerCase()) || 
+                p.category.toLowerCase().includes(filterText.toLowerCase())
+            );
+
+            if (filtered.length === 0) {
+                tableBody.innerHTML = `<tr><td colspan="4" class="p-4 text-center text-gray-500">No products found.</td></tr>`;
+                return;
+            }
+
+            filtered.forEach((product, index) => {
+                const row = document.createElement('tr');
+                row.className = 'border-b hover:bg-gray-50';
+                row.innerHTML = `
+                    <td class="p-3">${product.name}</td>
+                    <td class="p-3">${product.category}</td>
+                    <td class="p-3">$${product.price}</td>
+                    <td class="p-3 text-center space-x-2">
+                        <button onclick="editProduct(${product.id})" class="bg-yellow-500 text-white px-3 py-1 rounded text-sm hover:bg-yellow-600">Edit</button>
+                        <button onclick="deleteProduct(${product.id})" class="bg-red-600 text-white px-3 py-1 rounded text-sm hover:bg-red-700">Delete</button>
+                    </td>
+                `;
+                tableBody.appendChild(row);
+            });
+        }
+
+        productForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const id = productIdInput.value;
+            const name = nameInput.value;
+            const category = categoryInput.value;
+            const price = priceInput.value;
+
+            if (id) {
+                // Update
+                products = products.map(p => p.id == id ? { id: Number(id), name, category, price } : p);
+                productIdInput.value = '';
+                submitBtn.textContent = 'Add Product';
+                formTitle.textContent = 'Add New Product';
+            } else {
+                // Create
+                const newProduct = {
+                    id: Date.now(),
+                    name,
+                    category,
+                    price
+                };
+                products.push(newProduct);
+            }
+
+            saveToLocalStorage();
+            displayProducts();
+            productForm.reset();
+        });
+
+        window.editProduct = function(id) {
+            const product = products.find(p => p.id === id);
+            if (product) {
+                productIdInput.value = product.id;
+                nameInput.value = product.name;
+                categoryInput.value = product.category;
+                priceInput.value = product.price;
+                submitBtn.textContent = 'Update Product';
+                formTitle.textContent = 'Edit Product';
+            }
+        }
+
+        window.deleteProduct = function(id) {
+            products = products.filter(p => p.id !== id);
+            saveToLocalStorage();
+            displayProducts();
+        }
+
+        searchInput.addEventListener('input', function(e) {
+            displayProducts(e.target.value);
+        });
+
+        // Initial Load
+        displayProducts();
+    </script>
+</body>
+</html>

@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+ <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -6,7 +6,7 @@
     <title>API Products - Axios Integration</title>
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Axios CDN Link (Required for Assignment) -->
+    <!-- Axios CDN -->
     <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
 </head>
 <body class="bg-gray-100 font-sans">
@@ -14,81 +14,59 @@
     <!-- Navbar -->
     <nav class="bg-blue-600 text-white p-4 shadow-md">
         <div class="container mx-auto flex justify-between items-center">
-            <h1 class="text-xl font-bold">Nova Gem API Products</h1>
+            <h1 class="text-xl font-bold">Nova Gem Studio</h1>
             <div class="space-x-4">
-                <a href="index.html" class="hover:underline">Home</a>
-                <a href="inventory.html" class="hover:underline">Inventory (CRUD)</a>
-                <a href="api-product.html" class="underline font-semibold">API Products</a>
-            </div>
+   <a href="index.html">Home</a>
+<a href="inventory.html">Inventory (CRUD)</a>
+<a href="api-product.html">Api Products</a>
+</div>
         </div>
     </nav>
 
     <!-- Main Container -->
-    <div class="container mx-auto p-6">
-        <h2 class="text-2xl font-bold mb-6 text-gray-800 text-center">Fetched Products from Public API (via Axios)</h2>
+    <div class="container mx-auto p-6 max-w-6xl">
+        <h2 class="text-2xl font-bold mb-6 text-gray-800 text-center">Products from External API (Axios)</h2>
 
-        <!-- Loading State -->
-        <div id="loading" class="text-center text-lg text-blue-600 font-semibold my-10">
-            Loading products from API...
-        </div>
+        <!-- Loading / Error states -->
+        <div id="loading" class="text-center text-gray-600 text-lg py-10">Loading products via Axios...</div>
+        <div id="error" class="text-center text-red-600 font-semibold py-4 hidden"></div>
 
-        <!-- Error State -->
-        <div id="error-message" class="hidden text-center text-lg text-red-600 font-semibold my-10">
-            Failed to load products. Please check your internet connection or API endpoint.
-        </div>
-
-        <!-- Products Grid Container -->
-        <div id="product-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-            <!-- Dynamic Cards will load here -->
+        <!-- Products Grid -->
+        <div id="products-grid" class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <!-- Dynamic Cards Will Be Injected Here -->
         </div>
     </div>
 
-    <!-- JavaScript Logic for Axios GET Request -->
+    <!-- JavaScript Axios Logic -->
     <script>
-        const productGrid = document.getElementById('product-grid');
-        const loadingDiv = document.getElementById('loading');
-        const errorDiv = document.getElementById('error-message');
+        const grid = document.getElementById('products-grid');
+        const loading = document.getElementById('loading');
+        const errorDiv = document.getElementById('error');
 
-        // Function to fetch data using Axios GET request[span_0](start_span)[span_0](end_span)
-        async function fetchAPIProducts() {
-            try {
-                // Using free public Fake Store API[span_1](start_span)[span_1](end_span)
-                const response = await axios.get('https://fakestoreapi.com/products');
-                
-                // Hide loading spinner once data is fetched
-                loadingDiv.style.display = 'none';
-
+        axios.get('https://fakestoreapi.com/products')
+            .then(response => {
+                loading.style.display = 'none';
                 const products = response.data;
-
-                // Display products dynamically using map/forEach[span_2](start_span)[span_2](end_span)[span_3](start_span)[span_3](end_span)
+                
                 products.forEach(product => {
-                    const card = document.createElement('div');
-                    card.className = 'bg-white rounded-lg shadow-md p-4 flex flex-col justify-between hover:shadow-lg transition';
-                    
+                    const card = document.endingElement || document.createElement('div');
+                    card.className = 'bg-white p-4 rounded-lg shadow-md flex flex-col justify-between';
                     card.innerHTML = `
                         <div>
-                            <img src="${product.image}" alt="${product.title}" class="h-48 w-full object-contain mb-4">
-                            <h3 class="font-bold text-gray-800 text-sm mb-2 line-clamp-1">${product.title}</h3>
-                            <p class="text-gray-600 text-xs mb-2 line-clamp-2">${product.description}</p>
+                            <img src="${product.image}" alt="${product.title}" class="h-40 mx-auto object-contain mb-4">
+                            <h3 class="font-bold text-gray-800 text-sm mb-2 truncate">${product.title}</h3>
+                            <p class="text-blue-600 font-semibold mb-2">$${product.price}</p>
                         </div>
-                        <div>
-                            <div class="text-blue-600 font-bold text-lg mb-2">$${product.price}</div>
-                            <span class="inline-block bg-gray-200 text-gray-700 text-xs px-2 py-1 rounded uppercase font-semibold">${product.category}</span>
-                        </div>
+                        <span class="bg-gray-200 text-gray-700 text-xs px-2 py-1 rounded w-max">${product.category}</span>
                     `;
-                    productGrid.appendChild(card);
+                    grid.appendChild(card);
                 });
-
-            } catch (error) {
-                // Handle error states properly[span_4](start_span)[span_4](end_span)
-                loadingDiv.style.display = 'none';
+            })
+            .catch(error => {
+                loading.style.display = 'none';
+                errorDiv.textContent = 'Failed to load products from API. Please check your internet connection.';
                 errorDiv.classList.remove('hidden');
-                console.error('Error fetching API data:', error);
-            }
-        }
-
-        // Call the function on page load
-        fetchAPIProducts();
+            });
     </script>
 </body>
 </html>
